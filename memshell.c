@@ -275,7 +275,7 @@ ARG get_args(char *args, COMMAND *pcmd)
   */
 COMMAND read_command(ARG *args)
 {
-	char c;
+	
 	char cmd[MAX_CMD_SIZE]="";
 	char *token;
 	COMMAND our_cmd;
@@ -283,7 +283,7 @@ COMMAND read_command(ARG *args)
  
  	/* NB : il n'y a pas d'affichage du prompt */
 	scanf("%[^\n]", cmd); /* lecture de la ligne de commande */
-	c = getc(stdin); /* recuperation du \n */
+	getc(stdin); /* recuperation du \n */
 	token = strtok(cmd," "); /* recuperation de la commande */
 	get_command(token, &our_cmd); /* determination de la commande */
 		

@@ -1,17 +1,12 @@
-#ifndef __MEM_ALLOC_H
-#define __MEM_ALLOC_H
 
-#include <stddef.h>
 
-#define MAX_INDEX 20
-#define HEAP_SIZE 218
 #include <stdio.h>
+
 //#define HEAP_SIZE (1 << MAX_INDEX)
 //vania.marangozova@imag.fr
-//#include alloc.h
+#include "alloc.h"
 
-char M[HEAP_SIZE];//mem_heap[heap_size]
-// amettre dan sle .h
+
 
 // convention la taille de l'espace libre est la taille de l'espace libre sans les strcut fb et ff
 struct fb {
@@ -23,14 +18,14 @@ struct ff{
 };
 
 void mem_init(){  // fonctionne
-	*((struct fb **)M) = (struct fb*)(M+ sizeof (struct fb *));
-	struct fb *madame =(struct fb*)(M+ sizeof (struct fb *)) ;
+	*((struct fb **)mem_heap) = (struct fb*)(mem_heap+ sizeof (struct fb *));
+	struct fb *madame =(struct fb*)(mem_heap+ sizeof (struct fb *)) ;
 	madame->size=HEAP_SIZE-sizeof (struct fb *);
 	madame->next=NULL;
 }
 
 char * get_mem_start (){
-	return M;
+	return mem_heap;
 }
 
 void print_adresse (char * A){
@@ -47,9 +42,9 @@ void *parcours_first_fit(size_t size){
 	printf("je suis dans parcours first fit \n");
 	int b=1;
 	struct fb * p;
-	p= *(struct fb**)M;//potentielement un probleme ou pas 
+	p= *(struct fb**)mem_heap;//potentielement un probleme ou pas 
 	
-	if (p->size >= size+ sizeof(struct ff)) {return M;}
+	if (p->size >= size+ sizeof(struct ff)) {return mem_heap;}
 	else {
 		printf("dans le else \n");
 		while (b==1&& p!=NULL&&p->next!=NULL){
@@ -70,7 +65,7 @@ void *mem_alloc(size_t size){
 	
 	struct fb * p;
 	void * resultat;
-	int taille_espace_libre;
+	size_t taille_espace_libre;
 	// On cherche la premiere zone memoire libre
 	p= parcours_first_fit(size);
 	//Si on trouve null il n'y a pas de place 
@@ -79,10 +74,10 @@ void *mem_alloc(size_t size){
 	else {
 		struct fb ecureuil; // nouvelle zone libre 
 		printf ("j'essaie d'allouer un truc de taille : %d\n",(int)size);
-		if (p==(struct fb *)M){ // cas ou la place est dans la premiere zone libre de la memoire
+		if (p==(struct fb *)mem_heap){ // cas ou la place est dans la premiere zone libre de la memoire
 		
 			print_adresse((char*)p);
-			p= *(struct fb**)M;
+			p= *(struct fb**)mem_heap;
 			
 			// on recupere la taille de l'espace qu'on vient de recuperer 
 			taille_espace_libre= p->size;
@@ -101,7 +96,7 @@ void *mem_alloc(size_t size){
 				print_adresse((char*)resultat);
 				*((struct fb*)(resultat+size))=ecureuil;
 
-				*(struct fb**)M=(struct fb*)(resultat+size);
+				*(struct fb**)mem_heap=(struct fb*)(resultat+size);
 				
 			}
 			else {
@@ -114,7 +109,7 @@ void *mem_alloc(size_t size){
 				printf("res:");
 				print_adresse((char*)resultat);
 				
-				*(struct fb**)M= p->next;
+				*(struct fb**)mem_heap= p->next;
 				
 			}
 			
@@ -126,7 +121,7 @@ void *mem_alloc(size_t size){
 			print_adresse((char*)p);//OK
 
 			taille_espace_libre= p->next->size;
-			printf("taille_espace_libre: %d\n",taille_espace_libre);//OK
+			printf("taille_espace_libre: %lu\n",taille_espace_libre);//OK
 			// Si l'espace est plus grand que la zone donc on as besoin et que on peut dire qu'il y a une zone libre.
 			if (taille_espace_libre >= size + sizeof (struct ff)+ sizeof (struct fb)){
 				printf(" je suis la \n");
@@ -183,11 +178,11 @@ void mem_free(void *zone, size_t size){
 	printf(" Taille : %d\n",taille);
 	// On cherche la plus proche zone libre avant.
 	printf("On cherche la plus proche zone libre avant.\n");
-	struct fb * p=*(struct fb **)M;
+	struct fb * p=*(struct fb **)mem_heap;
 	struct fb * zone_libre_avant=NULL;
 	
-	if (*(struct fb **)M> (struct fb*)zone){
-		zone_libre_avant =(struct fb*) M;
+	if (*(struct fb **)mem_heap> (struct fb*)zone){
+		zone_libre_avant =(struct fb*) mem_heap;
 	}
 	else {
 		while (p->next!=NULL && p->next< (struct fb *)zone){
@@ -201,8 +196,8 @@ void mem_free(void *zone, size_t size){
 	//zone libre apres 
 	printf(" On cherche la zone libre apres\n");
 	struct fb * zone_libre_apres =NULL;
-	if (zone_libre_avant == (struct fb*)M){
-		zone_libre_apres=* (struct fb **)M;
+	if (zone_libre_avant == (struct fb*)mem_heap){
+		zone_libre_apres=* (struct fb **)mem_heap;
 	}
 	else zone_libre_apres=p->next;
 	
@@ -213,10 +208,10 @@ void mem_free(void *zone, size_t size){
 	// sans fusion
 	printf(" Sans fusion\n");
 	struct fb prout;
-	if (zone_libre_avant == (struct fb*)M){
+	if (zone_libre_avant == (struct fb*)mem_heap){
 		
 		
-		*((struct fb **)M)=((struct fb *)(((char*)zone)-sizeof(struct ff)));// on 8 dans M
+		*((struct fb **)mem_heap)=((struct fb *)(((char*)zone)-sizeof(struct ff)));// on 8 dans M
 	}
 	else zone_libre_avant->next=((struct fb *)(((char*)zone)-sizeof(struct ff)));
 	
@@ -235,7 +230,7 @@ void mem_free(void *zone, size_t size){
 		*((struct fb*)((char*)zone)-sizeof(struct ff))=prout;
 	}
 	
-	if (zone_libre_avant!= NULL &&(zone_libre_avant != (struct fb*)M) && ((void *)((char *)zone_libre_avant)+zone_libre_avant->size+sizeof(struct ff))==zone){//fusion a gauche
+	if (zone_libre_avant!= NULL &&(zone_libre_avant != (struct fb*)mem_heap) && ((void *)((char *)zone_libre_avant)+zone_libre_avant->size+sizeof(struct ff))==zone){//fusion a gauche
 		printf(" fusion gauche\n");
 		zone_libre_avant->next=prout.next; //zone_libre_apres;
 		zone_libre_avant->size=zone_libre_avant->size+prout.size;
@@ -245,13 +240,13 @@ void mem_free(void *zone, size_t size){
 
 void mem_show(void (*print)(void *zone, size_t size)){
 	struct fb *p;
-	p= * (struct fb **)M;
+	p= * (struct fb **)mem_heap;
 	
 	int g;
 	printf("\n");
 	for(g=0;g<28;g++)
-		printf("%zu, ", ((size_t*)M)[g]);
-	printf("\n%zu\n", (size_t)M);
+		printf("%zu, ", ((size_t*)mem_heap)[g]);
+	printf("\n%zu\n", (size_t)mem_heap);
 	
 	while ( p!=NULL){
 		print (p,p->size);
@@ -260,7 +255,7 @@ void mem_show(void (*print)(void *zone, size_t size)){
 	
 	
 }
-
+/*
 int main (){
 	int d;
 	printf("ff:%d\n",(int) sizeof(struct ff));
@@ -302,5 +297,5 @@ int main (){
 	scanf("%d",&d);
 	p1= mem_alloc(40);
 	mem_show(affiche);
-}
-#endif
+}*/
+
