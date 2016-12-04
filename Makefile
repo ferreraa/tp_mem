@@ -2,16 +2,16 @@ CC=gcc
 CFLAGS=-Wall -g
 
 alloc: alloc.o memshell.o
-	gcc -o alloc.o memshell.o  alloc.h -Wall -W
-
-
+	gcc -o alloc alloc.o memshell.o
 
 memshell.o: memshell.c alloc.h
-	gcc -o memshell.o -c memshell.c  -Wall
+	gcc -o memshell.o -c memshell.c
 
 
 alloc.o: alloc.c alloc.h
-	gcc -o alloc.o -c alloc.c   -Wall 
+	gcc -o alloc.o -c alloc.c
+
+
 
 
 
