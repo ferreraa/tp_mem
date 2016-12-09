@@ -5,8 +5,6 @@
 
 #define MAX_INDEX 20
 #define HEAP_SIZE (1 << MAX_INDEX)
-
-
 char mem_heap[HEAP_SIZE];
 
 void mem_init();

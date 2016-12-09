@@ -11,12 +11,5 @@ memshell.o: memshell.c alloc.h
 alloc.o: alloc.c alloc.h
 	gcc -o alloc.o -c alloc.c
 
-
-
-
-
-
-
-
 clean:
 	rm -f alloc.o memshell.o  alloc
